@@ -4,6 +4,8 @@ import { storage } from "./storage";
 import cors from "cors";
 import dotenv from "dotenv";
 import { google } from "googleapis";
+import { parseISO } from "date-fns";
+import { formatInTimeZone } from "date-fns-tz";
 
 // Load environment variables
 dotenv.config();
@@ -167,12 +169,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Parse dates
-      const startDate = new Date(startTime);
-      const endDate = new Date(endTime);
-
-      // Validate dates
-      if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-        console.log("Invalid date format");
+      let startDate: Date, endDate: Date;
+      
+      try {
+        // Parse ISO strings to Date objects
+        startDate = typeof startTime === 'string' ? parseISO(startTime) : new Date(startTime);
+        endDate = typeof endTime === 'string' ? parseISO(endTime) : new Date(endTime);
+        
+        // Validate dates
+        if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+          throw new Error("Invalid date format");
+        }
+      } catch (error) {
+        console.log("Invalid date format", error);
         return res.status(400).json({ 
           error: "Invalid date format", 
           details: "startTime and endTime must be valid ISO date strings (e.g. 2025-06-01T10:00:00)" 
@@ -209,18 +218,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("Creating Calendar client");
       const calendar = google.calendar({ version: 'v3', auth });
 
+      const timezone = 'Europe/Rome';
+      
+      // Format dates in the correct format for Google Calendar API with timezone awareness
+      const formatGoogleCalendarDateTime = (date: Date, tz: string) => {
+        return formatInTimeZone(date, tz, "yyyy-MM-dd'T'HH:mm:ss.SSS");
+      };
+      
       // Create basic event object without attendees
       const event: any = {
         summary,
         start: {
-          dateTime: startDate.toISOString(),
-          timeZone: 'Europe/Rome',
+          dateTime: formatGoogleCalendarDateTime(startDate, timezone),
+          timeZone: timezone,
         },
         end: {
-          dateTime: endDate.toISOString(),
-          timeZone: 'Europe/Rome',
+          dateTime: formatGoogleCalendarDateTime(endDate, timezone),
+          timeZone: timezone,
         },
       };
+      
+      console.log('Event start time:', startDate, '→', event.start.dateTime, '(' + timezone + ')');
       
       // Only add attendees if provided
       if (attendees && Array.isArray(attendees) && attendees.length > 0) {
@@ -262,29 +280,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get timezone from query parameter or use Rome as default
       const timezone = req.query.timezone as string || "Europe/Rome";
       
-      // Get current date in the specified timezone
+      // Get current date
       const now = new Date();
       
-      // Format the date in the specified timezone
-      const formatter = new Intl.DateTimeFormat("en-US", {
-        timeZone: timezone,
-        weekday: "long",
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-        hour: "numeric",
-        minute: "numeric",
-        second: "numeric",
-        timeZoneName: "short"
-      });
-      
-      const formattedDate = formatter.format(now);
-      const dayOfWeek = new Intl.DateTimeFormat("en-US", { timeZone: timezone, weekday: "long" }).format(now);
+      // Format the date in the specified timezone using date-fns-tz
+      const formattedDate = formatInTimeZone(now, timezone, "EEEE, MMMM d, yyyy h:mm:ss a zzz");
+      const dayOfWeek = formatInTimeZone(now, timezone, "EEEE");
+      const time = formatInTimeZone(now, timezone, "h:mm:ss a");
+      const dateOnly = formatInTimeZone(now, timezone, "yyyy-MM-dd");
       
       res.json({
-        datetime: now.toISOString(),
-        formattedDate,
+        iso: now.toISOString(),
+        formatted: formattedDate,
         dayOfWeek,
+        time,
+        date: dateOnly,
         timezone
       });
     } catch (error) {
