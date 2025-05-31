@@ -42,7 +42,7 @@ export default function VoiceCallModal({ isOpen, onClose }: VoiceCallModalProps)
     
     switch (elevenLabsState) {
       case 'idle':
-        return 'Chiamata in arrivo...';
+        return 'In attesa di chiamata...';
       case 'connecting':
         return 'Connessione in corso...';
       case 'connected':
