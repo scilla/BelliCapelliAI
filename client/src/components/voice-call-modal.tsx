@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Phone, PhoneOff, Mic, MicOff, Volume2, Grid3X3 } from "lucide-react";
+import { Phone, PhoneOff, Mic, MicOff, Volume2, Grid3X3, AlertCircle } from "lucide-react";
 import PhoneMock from "./ui/phone-mock";
+import { useElevenLabsConversation } from "@/hooks/use-elevenlabs-conversation";
 
 interface VoiceCallModalProps {
   isOpen: boolean;
@@ -12,25 +13,48 @@ interface VoiceCallModalProps {
 type CallState = 'incoming' | 'active' | 'ended';
 
 export default function VoiceCallModal({ isOpen, onClose }: VoiceCallModalProps) {
-  const [callState, setCallState] = useState<CallState>('incoming');
-  const [callDuration, setCallDuration] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
   const [isSpeakerOn, setIsSpeakerOn] = useState(false);
-  const [callStatus, setCallStatus] = useState('Chiamata in arrivo...');
+  
+  const {
+    callState: elevenLabsState,
+    isConnected,
+    isSpeaking,
+    callDuration,
+    error,
+    startConversation,
+    endConversation,
+  } = useElevenLabsConversation();
 
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    
-    if (callState === 'active') {
-      interval = setInterval(() => {
-        setCallDuration(prev => prev + 1);
-      }, 1000);
+  // Map ElevenLabs states to our modal states
+  const getCallState = (): CallState => {
+    if (elevenLabsState === 'idle' || elevenLabsState === 'connecting') return 'incoming';
+    if (elevenLabsState === 'connected' || elevenLabsState === 'speaking' || elevenLabsState === 'listening') return 'active';
+    return 'ended';
+  };
+
+  const callState = getCallState();
+
+  const getCallStatus = (): string => {
+    switch (elevenLabsState) {
+      case 'idle':
+        return 'Chiamata in arrivo...';
+      case 'connecting':
+        return 'Connessione in corso...';
+      case 'connected':
+        return 'Chiamata attiva';
+      case 'speaking':
+        return 'AI sta parlando...';
+      case 'listening':
+        return 'In ascolto...';
+      case 'ended':
+        return 'Chiamata terminata';
+      case 'error':
+        return error || 'Errore di connessione';
+      default:
+        return 'Chiamata in arrivo...';
     }
-
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [callState]);
+  };
 
   useEffect(() => {
     if (isOpen) {
@@ -39,30 +63,28 @@ export default function VoiceCallModal({ isOpen, onClose }: VoiceCallModalProps)
   }, [isOpen]);
 
   const resetCallState = () => {
-    setCallState('incoming');
-    setCallDuration(0);
     setIsMuted(false);
     setIsSpeakerOn(false);
-    setCallStatus('Chiamata in arrivo...');
   };
 
-  const acceptCall = () => {
-    setCallState('active');
-    setCallStatus('Chiamata attiva');
-    
-    // Simulate AI greeting after short delay
-    setTimeout(() => {
-      setCallStatus('Ciao! Come posso aiutarti oggi?');
-    }, 2000);
+  const acceptCall = async () => {
+    try {
+      await startConversation();
+    } catch (error) {
+      console.error('Failed to start conversation:', error);
+    }
   };
 
-  const endCall = () => {
-    setCallState('ended');
-    setCallStatus('Chiamata terminata');
-    
-    setTimeout(() => {
+  const endCall = async () => {
+    try {
+      await endConversation();
+      setTimeout(() => {
+        onClose();
+      }, 2000);
+    } catch (error) {
+      console.error('Failed to end conversation:', error);
       onClose();
-    }, 2000);
+    }
   };
 
   const toggleMute = () => {
@@ -122,7 +144,7 @@ export default function VoiceCallModal({ isOpen, onClose }: VoiceCallModalProps)
                 </div>
               </div>
 
-              <div className="text-sm text-white/60 mb-2">{callStatus}</div>
+              <div className="text-sm text-white/60 mb-2">{getCallStatus()}</div>
               <h3 className="text-xl font-medium mb-1">Bella Vita AI</h3>
               <p className="text-white/80 text-sm">Consulente Esperto</p>
             </div>
@@ -136,7 +158,7 @@ export default function VoiceCallModal({ isOpen, onClose }: VoiceCallModalProps)
                   className="w-32 h-32 rounded-full border-4 border-white/20 shadow-2xl" 
                 />
                 {/* Call indicator ring */}
-                {callState === 'incoming' && (
+                {(callState === 'incoming' || isSpeaking) && (
                   <div className="absolute inset-0 rounded-full border-4 border-ios-green opacity-100 ripple"></div>
                 )}
               </div>
@@ -206,9 +228,14 @@ export default function VoiceCallModal({ isOpen, onClose }: VoiceCallModalProps)
               )}
 
               {/* Call ended state */}
-              {callState === 'ended' && (
+              {(callState === 'ended' || elevenLabsState === 'error') && (
                 <div className="text-center space-y-4">
-                  <p className="text-white/80 mb-4">Chiamata terminata</p>
+                  <p className="text-white/80 mb-4">
+                    {elevenLabsState === 'error' ? 'Errore nella chiamata' : 'Chiamata terminata'}
+                  </p>
+                  {error && (
+                    <p className="text-red-400 text-sm mb-4">{error}</p>
+                  )}
                   <Button 
                     onClick={onClose}
                     className="bg-vibrant-coral hover:bg-vibrant-coral/90 text-white px-8 py-3 rounded-full font-medium"
