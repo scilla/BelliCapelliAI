@@ -15,6 +15,7 @@ type CallState = 'incoming' | 'active' | 'ended';
 export default function VoiceCallModal({ isOpen, onClose }: VoiceCallModalProps) {
   const [isMuted, setIsMuted] = useState(false);
   const [isSpeakerOn, setIsSpeakerOn] = useState(false);
+  const [isEnding, setIsEnding] = useState(false);
   
   const {
     callState: elevenLabsState,
@@ -36,6 +37,8 @@ export default function VoiceCallModal({ isOpen, onClose }: VoiceCallModalProps)
   const callState = getCallState();
 
   const getCallStatus = (): string => {
+    if (isEnding) return 'Terminando chiamata...';
+    
     switch (elevenLabsState) {
       case 'idle':
         return 'Chiamata in arrivo...';
@@ -65,6 +68,7 @@ export default function VoiceCallModal({ isOpen, onClose }: VoiceCallModalProps)
   const resetCallState = () => {
     setIsMuted(false);
     setIsSpeakerOn(false);
+    setIsEnding(false);
   };
 
   const acceptCall = async () => {
@@ -76,13 +80,41 @@ export default function VoiceCallModal({ isOpen, onClose }: VoiceCallModalProps)
   };
 
   const endCall = async () => {
+    if (isEnding) return; // Prevent multiple calls
+    
     try {
+      console.log('Ending call from UI...');
+      setIsEnding(true);
       await endConversation();
+      // Give a short delay to ensure the conversation is properly ended
       setTimeout(() => {
+        console.log('Closing modal after ending call');
+        setIsEnding(false);
         onClose();
-      }, 2000);
+      }, 1500);
     } catch (error) {
       console.error('Failed to end conversation:', error);
+      setIsEnding(false);
+      // Close modal anyway if there's an error
+      onClose();
+    }
+  };
+
+  const rejectCall = async () => {
+    if (isEnding) return; // Prevent multiple calls
+    
+    try {
+      console.log('Rejecting incoming call...');
+      setIsEnding(true);
+      // If there's any active conversation, end it
+      if (elevenLabsState !== 'idle') {
+        await endConversation();
+      }
+      setIsEnding(false);
+      onClose();
+    } catch (error) {
+      console.error('Failed to reject call:', error);
+      setIsEnding(false);
       onClose();
     }
   };
@@ -177,14 +209,20 @@ export default function VoiceCallModal({ isOpen, onClose }: VoiceCallModalProps)
               {callState === 'incoming' && (
                 <div className="flex justify-center space-x-8">
                   <Button
-                    onClick={onClose}
-                    className="w-16 h-16 bg-red-500 hover:bg-red-600 rounded-full p-0"
+                    onClick={rejectCall}
+                    disabled={isEnding}
+                    className={`w-16 h-16 rounded-full p-0 ${
+                      isEnding 
+                        ? 'bg-red-300 cursor-not-allowed' 
+                        : 'bg-red-500 hover:bg-red-600'
+                    }`}
                   >
-                    <PhoneOff className="w-6 h-6" />
+                    <PhoneOff className={`w-6 h-6 ${isEnding ? 'animate-pulse' : ''}`} />
                   </Button>
                   <Button
                     onClick={acceptCall}
-                    className="w-16 h-16 bg-ios-green hover:bg-green-600 rounded-full p-0 pulse-call"
+                    disabled={isEnding}
+                    className="w-16 h-16 bg-ios-green hover:bg-green-600 rounded-full p-0 pulse-call disabled:bg-green-300 disabled:cursor-not-allowed"
                   >
                     <Phone className="w-6 h-6" />
                   </Button>
@@ -219,9 +257,14 @@ export default function VoiceCallModal({ isOpen, onClose }: VoiceCallModalProps)
                   <div className="text-center">
                     <Button
                       onClick={endCall}
-                      className="w-16 h-16 bg-red-500 hover:bg-red-600 rounded-full p-0"
+                      disabled={isEnding}
+                      className={`w-16 h-16 rounded-full p-0 ${
+                        isEnding 
+                          ? 'bg-red-300 cursor-not-allowed' 
+                          : 'bg-red-500 hover:bg-red-600'
+                      }`}
                     >
-                      <PhoneOff className="w-6 h-6" />
+                      <PhoneOff className={`w-6 h-6 ${isEnding ? 'animate-pulse' : ''}`} />
                     </Button>
                   </div>
                 </div>
