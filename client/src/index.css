@@ -1,0 +1,192 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 42 10% 98%; /* #FAF9F7 - cream white */
+  --foreground: 204 15% 11%; /* #1C1C1E - deep black */
+  --muted: 42 10% 95%; /* muted cream */
+  --muted-foreground: 25 5% 45%; /* muted text */
+  --popover: 42 10% 98%; /* #FAF9F7 */
+  --popover-foreground: 204 15% 11%; /* #1C1C1E */
+  --card: 0 0% 100%; /* white */
+  --card-foreground: 204 15% 11%; /* #1C1C1E */
+  --border: 42 8% 85%; /* light border */
+  --input: 42 8% 85%; /* input border */
+  --primary: 207 90% 54%; /* #3B82F6 - blue (keeping original) */
+  --primary-foreground: 211 100% 99%; /* white */
+  --secondary: 42 10% 95%; /* light cream */
+  --secondary-foreground: 204 15% 11%; /* deep black */
+  --accent: 42 10% 95%; /* accent cream */
+  --accent-foreground: 204 15% 11%; /* deep black */
+  --destructive: 0 84% 60%; /* red */
+  --destructive-foreground: 60 9% 98%; /* light text */
+  --ring: 204 15% 11%; /* focus ring */
+  --radius: 0.5rem;
+  
+  /* Custom Italian salon colors */
+  --espresso: 25 50% 13%; /* #2C1810 - rich espresso */
+  --warm-gold: 38 46% 64%; /* #D4A574 - warm gold */
+  --cream-white: 42 10% 98%; /* #FAF9F7 - cream white */
+  --deep-black: 204 15% 11%; /* #1C1C1E - deep black */
+  --vibrant-coral: 14 100% 60%; /* #FF6B35 - vibrant coral */
+  --ios-green: 142 76% 50%; /* #34C759 - iOS green */
+}
+
+.dark {
+  --background: 240 10% 4%; /* dark background */
+  --foreground: 0 0% 98%; /* light text */
+  --muted: 240 4% 16%; /* dark muted */
+  --muted-foreground: 240 5% 65%; /* muted text */
+  --popover: 240 10% 4%; /* dark popover */
+  --popover-foreground: 0 0% 98%; /* light text */
+  --card: 240 10% 4%; /* dark card */
+  --card-foreground: 0 0% 98%; /* light text */
+  --border: 240 4% 16%; /* dark border */
+  --input: 240 4% 16%; /* dark input */
+  --primary: 207 90% 54%; /* blue */
+  --primary-foreground: 211 100% 99%; /* white */
+  --secondary: 240 4% 16%; /* dark secondary */
+  --secondary-foreground: 0 0% 98%; /* light text */
+  --accent: 240 4% 16%; /* dark accent */
+  --accent-foreground: 0 0% 98%; /* light text */
+  --destructive: 0 63% 31%; /* dark red */
+  --destructive-foreground: 0 0% 98%; /* light text */
+  --ring: 240 5% 84%; /* light ring */
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Playfair Display', Georgia, serif;
+  }
+}
+
+@layer utilities {
+  .font-playfair {
+    font-family: 'Playfair Display', Georgia, serif;
+  }
+  
+  .font-inter {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+  
+  .text-espresso {
+    color: hsl(var(--espresso));
+  }
+  
+  .bg-espresso {
+    background-color: hsl(var(--espresso));
+  }
+  
+  .text-warm-gold {
+    color: hsl(var(--warm-gold));
+  }
+  
+  .bg-warm-gold {
+    background-color: hsl(var(--warm-gold));
+  }
+  
+  .bg-cream-white {
+    background-color: hsl(var(--cream-white));
+  }
+  
+  .text-vibrant-coral {
+    color: hsl(var(--vibrant-coral));
+  }
+  
+  .bg-vibrant-coral {
+    background-color: hsl(var(--vibrant-coral));
+  }
+  
+  .text-ios-green {
+    color: hsl(var(--ios-green));
+  }
+  
+  .bg-ios-green {
+    background-color: hsl(var(--ios-green));
+  }
+  
+  .golden-ratio {
+    margin-bottom: calc(1.618em);
+  }
+  
+  .fade-in {
+    animation: fadeIn 0.6s ease-out;
+  }
+  
+  .slide-up {
+    animation: slideUp 0.8s ease-out;
+  }
+  
+  .pulse-call {
+    animation: pulse-call 2s ease-in-out infinite;
+  }
+  
+  .modal-backdrop {
+    backdrop-filter: blur(20px);
+  }
+}
+
+@keyframes fadeIn {
+  from { 
+    opacity: 0; 
+    transform: translateY(20px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
+}
+
+@keyframes slideUp {
+  from { 
+    opacity: 0; 
+    transform: translateY(40px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
+}
+
+@keyframes pulse-call {
+  0%, 100% { 
+    transform: scale(1); 
+  }
+  50% { 
+    transform: scale(1.05); 
+  }
+}
+
+@keyframes ripple {
+  0% { 
+    transform: scale(0); 
+    opacity: 1; 
+  }
+  100% { 
+    transform: scale(4); 
+    opacity: 0; 
+  }
+}
+
+.ripple::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(52, 199, 89, 0.4);
+  transform: translate(-50%, -50%) scale(0);
+  animation: ripple 2s infinite;
+}
