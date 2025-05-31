@@ -293,11 +293,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // 404 handler for undefined routes
-  app.use((req, res) => {
-    console.log(`Route not found: ${req.method} ${req.path}`);
-    res.status(404).json({ error: "Route not found", path: req.path });
-  });
+  // // 404 handler for undefined routes
+  // app.use((req, res) => {
+  //   console.log(`Route not found: ${req.method} ${req.path}`);
+  //   res.status(404).json({ error: "Route not found", path: req.path });
+  // });
 
   const httpServer = createServer(app);
 

@@ -11,6 +11,7 @@ interface UseElevenLabsConversationReturn {
   error: string | null;
   startConversation: () => Promise<void>;
   endConversation: () => Promise<void>;
+  resetConversation: () => void;
   requestMicrophonePermission: () => Promise<boolean>;
 }
 
@@ -296,6 +297,21 @@ export function useElevenLabsConversation(): UseElevenLabsConversationReturn {
     }
   }, [cleanupAudioResources]);
 
+  const resetConversation = useCallback(() => {
+    console.log('Resetting conversation state...');
+    
+    // Clean up any existing resources
+    cleanupAudioResources();
+    
+    // Reset all state to initial values
+    setCallState('idle');
+    setCallDuration(0);
+    setError(null);
+    reconnectAttemptRef.current = 0;
+    
+    console.log('Conversation state reset to idle');
+  }, [cleanupAudioResources]);
+
   return {
     callState,
     isConnected: callState === 'connected' || callState === 'speaking' || callState === 'listening',
@@ -304,6 +320,7 @@ export function useElevenLabsConversation(): UseElevenLabsConversationReturn {
     error,
     startConversation,
     endConversation,
+    resetConversation,
     requestMicrophonePermission
   };
 }

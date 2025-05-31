@@ -25,6 +25,7 @@ export default function VoiceCallModal({ isOpen, onClose }: VoiceCallModalProps)
     error,
     startConversation,
     endConversation,
+    resetConversation,
   } = useElevenLabsConversation();
 
   // Map ElevenLabs states to our modal states
@@ -61,9 +62,16 @@ export default function VoiceCallModal({ isOpen, onClose }: VoiceCallModalProps)
 
   useEffect(() => {
     if (isOpen) {
+      console.log('Modal opened, resetting conversation state...');
+      resetConversation();
+      resetCallState();
+    } else {
+      // When modal closes, ensure conversation is reset for next time
+      console.log('Modal closed, ensuring conversation is reset...');
+      resetConversation();
       resetCallState();
     }
-  }, [isOpen]);
+  }, [isOpen, resetConversation]);
 
   const resetCallState = () => {
     setIsMuted(false);
@@ -90,11 +98,13 @@ export default function VoiceCallModal({ isOpen, onClose }: VoiceCallModalProps)
       setTimeout(() => {
         console.log('Closing modal after ending call');
         setIsEnding(false);
+        resetConversation(); // Ensure clean state for next open
         onClose();
       }, 1500);
     } catch (error) {
       console.error('Failed to end conversation:', error);
       setIsEnding(false);
+      resetConversation(); // Reset even on error
       // Close modal anyway if there's an error
       onClose();
     }
@@ -110,10 +120,12 @@ export default function VoiceCallModal({ isOpen, onClose }: VoiceCallModalProps)
       if (elevenLabsState !== 'idle') {
         await endConversation();
       }
+      resetConversation(); // Ensure clean state
       setIsEnding(false);
       onClose();
     } catch (error) {
       console.error('Failed to reject call:', error);
+      resetConversation(); // Reset even on error
       setIsEnding(false);
       onClose();
     }
@@ -135,6 +147,7 @@ export default function VoiceCallModal({ isOpen, onClose }: VoiceCallModalProps)
 
   const handleBackdropClick = () => {
     if (callState === 'incoming' || callState === 'ended') {
+      resetConversation();
       onClose();
     }
   };
@@ -154,7 +167,10 @@ export default function VoiceCallModal({ isOpen, onClose }: VoiceCallModalProps)
             <div className="relative p-6 pt-12 md:pt-6 text-center bg-gradient-to-b from-gray-900 to-black text-white">
               {/* Close button for desktop */}
               <button 
-                onClick={onClose}
+                onClick={() => {
+                  resetConversation();
+                  onClose();
+                }}
                 className="absolute top-4 right-4 w-8 h-8 bg-white/20 rounded-full items-center justify-center hover:bg-white/30 transition-colors hidden md:flex"
               >
                 ×
@@ -280,7 +296,10 @@ export default function VoiceCallModal({ isOpen, onClose }: VoiceCallModalProps)
                     <p className="text-red-400 text-sm mb-4">{error}</p>
                   )}
                   <Button 
-                    onClick={onClose}
+                    onClick={() => {
+                      resetConversation();
+                      onClose();
+                    }}
                     className="bg-vibrant-coral hover:bg-vibrant-coral/90 text-white px-8 py-3 rounded-full font-medium"
                   >
                     Chiudi
