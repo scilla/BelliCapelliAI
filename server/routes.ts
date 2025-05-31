@@ -256,6 +256,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // API route for getting current date and day of week
+  app.get("/api/datetime", (req, res) => {
+    try {
+      // Get timezone from query parameter or use Rome as default
+      const timezone = req.query.timezone as string || "Europe/Rome";
+      
+      // Get current date in the specified timezone
+      const now = new Date();
+      
+      // Format the date in the specified timezone
+      const formatter = new Intl.DateTimeFormat("en-US", {
+        timeZone: timezone,
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "numeric",
+        minute: "numeric",
+        second: "numeric",
+        timeZoneName: "short"
+      });
+      
+      const formattedDate = formatter.format(now);
+      const dayOfWeek = new Intl.DateTimeFormat("en-US", { timeZone: timezone, weekday: "long" }).format(now);
+      
+      res.json({
+        datetime: now.toISOString(),
+        formattedDate,
+        dayOfWeek,
+        timezone
+      });
+    } catch (error) {
+      console.error("Error getting date/time:", error);
+      res.status(500).json({ error: "Failed to get date/time information" });
+    }
+  });
+
   // 404 handler for undefined routes
   app.use((req, res) => {
     console.log(`Route not found: ${req.method} ${req.path}`);
