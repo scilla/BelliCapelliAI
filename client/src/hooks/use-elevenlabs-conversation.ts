@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { Conversation } from '@elevenlabs/client';
 
 export type CallState = 'idle' | 'connecting' | 'connected' | 'speaking' | 'listening' | 'ended' | 'error';
@@ -14,18 +14,63 @@ interface UseElevenLabsConversationReturn {
   requestMicrophonePermission: () => Promise<boolean>;
 }
 
+// Helper function to ensure the audio context is resumed
+const ensureAudioContext = async () => {
+  // Create a temporary audio context just to ensure it's in a running state
+  const tempContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+  if (tempContext.state !== 'running') {
+    console.log('Resuming audio context...');
+    await tempContext.resume();
+    // Add a small delay to ensure the audio context is fully activated
+    await new Promise(resolve => setTimeout(resolve, 500));
+  }
+  return tempContext.state === 'running';
+};
+
 export function useElevenLabsConversation(): UseElevenLabsConversationReturn {
   const [callState, setCallState] = useState<CallState>('idle');
   const [callDuration, setCallDuration] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [audioReady, setAudioReady] = useState(false);
   
   const conversationRef = useRef<any>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const reconnectAttemptRef = useRef(0);
+  const maxReconnectAttempts = 3;
+
+  // Check and prepare audio context when component mounts
+  useEffect(() => {
+    const prepareAudio = async () => {
+      try {
+        const ready = await ensureAudioContext();
+        setAudioReady(ready);
+      } catch (err) {
+        console.error('Error preparing audio context:', err);
+        setAudioReady(false);
+      }
+    };
+    
+    prepareAudio();
+    
+    // Cleanup on unmount
+    return () => {
+      if (conversationRef.current) {
+        conversationRef.current.endSession().catch(console.error);
+      }
+      stopTimer();
+    };
+  }, []);
 
   const requestMicrophonePermission = useCallback(async (): Promise<boolean> => {
     try {
-      await navigator.mediaDevices.getUserMedia({ audio: true });
-      return true;
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      // Keep the stream active to maintain microphone access
+      const tracks = stream.getAudioTracks();
+      if (tracks.length > 0) {
+        console.log('Microphone access granted');
+        return true;
+      }
+      return false;
     } catch (error) {
       console.error('Microphone permission denied:', error);
       setError('Microphone permission is required for the conversation.');
@@ -48,6 +93,9 @@ export function useElevenLabsConversation(): UseElevenLabsConversationReturn {
   }, []);
 
   const startTimer = useCallback(() => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+    }
     timerRef.current = setInterval(() => {
       setCallDuration(prev => prev + 1);
     }, 1000);
@@ -62,20 +110,28 @@ export function useElevenLabsConversation(): UseElevenLabsConversationReturn {
 
   const startConversation = useCallback(async () => {
     try {
+      // End any existing conversation first
+      if (conversationRef.current) {
+        await conversationRef.current.endSession();
+        conversationRef.current = null;
+      }
+      
       setError(null);
       setCallState('connecting');
 
-      // Request microphone permission
+      // Request microphone permission first (just like in example.js)
       const hasPermission = await requestMicrophonePermission();
       if (!hasPermission) {
+        setError('Microphone permission is required for the conversation.');
         setCallState('error');
         return;
       }
 
       // Get signed URL from our API
       const signedUrl = await getSignedUrl();
+      console.log('Got signed URL:', signedUrl);
 
-      // Start ElevenLabs conversation
+      // Start ElevenLabs conversation with minimal configuration (like example.js)
       const conversation = await Conversation.startSession({
         signedUrl: signedUrl,
         onConnect: () => {
@@ -111,10 +167,11 @@ export function useElevenLabsConversation(): UseElevenLabsConversationReturn {
       setError(`Failed to start conversation: ${error.message || 'Unknown error'}`);
       setCallState('error');
     }
-  }, [requestMicrophonePermission, getSignedUrl, startTimer, stopTimer]);
+  }, [audioReady, requestMicrophonePermission, getSignedUrl, startTimer, stopTimer]);
 
   const endConversation = useCallback(async () => {
     try {
+      reconnectAttemptRef.current = maxReconnectAttempts; // Prevent reconnection attempts
       if (conversationRef.current) {
         await conversationRef.current.endSession();
         conversationRef.current = null;
@@ -125,14 +182,6 @@ export function useElevenLabsConversation(): UseElevenLabsConversationReturn {
       console.error('Error ending conversation:', error);
       setError(`Failed to end conversation: ${error.message || 'Unknown error'}`);
     }
-  }, [stopTimer]);
-
-  // Cleanup on unmount
-  const cleanup = useCallback(() => {
-    if (conversationRef.current) {
-      conversationRef.current.endSession().catch(console.error);
-    }
-    stopTimer();
   }, [stopTimer]);
 
   return {
