@@ -225,17 +225,6 @@ export default function VoiceCallModal({ isOpen, onClose }: VoiceCallModalProps)
               {callState === 'incoming' && (
                 <div className="flex justify-center space-x-8">
                   <Button
-                    onClick={rejectCall}
-                    disabled={isEnding}
-                    className={`w-16 h-16 rounded-full p-0 ${
-                      isEnding 
-                        ? 'bg-red-300 cursor-not-allowed' 
-                        : 'bg-red-500 hover:bg-red-600'
-                    }`}
-                  >
-                    <PhoneOff className={`w-6 h-6 ${isEnding ? 'animate-pulse' : ''}`} />
-                  </Button>
-                  <Button
                     onClick={acceptCall}
                     disabled={isEnding}
                     className="w-16 h-16 bg-ios-green hover:bg-green-600 rounded-full p-0 pulse-call disabled:bg-green-300 disabled:cursor-not-allowed"
@@ -248,7 +237,7 @@ export default function VoiceCallModal({ isOpen, onClose }: VoiceCallModalProps)
               {/* Active call controls */}
               {callState === 'active' && (
                 <div>
-                  <div className="grid grid-cols-3 gap-4 mb-8">
+                  <div className="flex justify-center gap-10 mb-8">
                     <Button
                       onClick={toggleMute}
                       className={`w-14 h-14 rounded-full p-0 ${
