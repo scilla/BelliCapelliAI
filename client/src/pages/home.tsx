@@ -303,11 +303,11 @@ export default function Home() {
       {/* CTA Section */}
       <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-espresso to-espresso/90 text-white">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="font-playfair text-4xl md:text-6xl font-bold mb-8">
+          <h2 className="font-playfair text-4xl md:text-6xl font-bold text-espresso mb-8">
             La Tua Trasformazione<br />
             <span className="text-warm-gold">Inizia Qui</span>
           </h2>
-          <p className="text-xl mb-12 text-white/90 max-w-3xl mx-auto leading-relaxed">
+          <p className="text-xl mb-12 text-foreground/90 max-w-3xl mx-auto leading-relaxed">
             Non aspettare. Parla subito con il nostro esperto AI e scopri 
             come possiamo esaltare la tua bellezza naturale con l'eleganza italiana.
           </p>
@@ -320,7 +320,7 @@ export default function Home() {
               <MicOff className="w-6 h-6 mr-3" />
               Chiama Ora - È Gratuito
             </Button>
-            <p className="text-white/70 text-sm">
+            <p className="text-foreground/70 text-sm">
               ⚡ Risposta immediata • 🎯 Consulenza personalizzata • 💎 Risultati garantiti
             </p>
           </div>
