@@ -20,7 +20,7 @@ export default function Home() {
               <div className="w-10 h-10 bg-espresso rounded-full flex items-center justify-center">
                 <div className="w-6 h-6 text-warm-gold flex items-center justify-center">✂</div>
               </div>
-              <span className="font-playfair text-2xl font-semibold text-espresso">Bella Vita</span>
+              <span className="font-playfair text-2xl font-semibold text-espresso">Belli Capelli</span>
             </div>
             <Button onClick={openModal} className="bg-vibrant-coral hover:bg-vibrant-coral/90 text-white px-6 py-2.5 rounded-full font-medium transition-all duration-300 transform hover:scale-105 shadow-lg">
               <Phone className="w-4 h-4 mr-2" />
@@ -288,7 +288,7 @@ export default function Home() {
             <div className="relative">
               <img 
                 src="https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=700" 
-                alt="Salone Bella Vita" 
+                alt="Salone Belli Capelli" 
                 className="rounded-2xl shadow-2xl w-full h-auto" 
               />
               <div className="absolute -bottom-6 -right-6 bg-warm-gold text-white p-6 rounded-2xl shadow-xl">
@@ -336,7 +336,7 @@ export default function Home() {
                 <div className="w-12 h-12 bg-warm-gold rounded-full flex items-center justify-center">
                   <div className="w-6 h-6 text-espresso flex items-center justify-center">✂</div>
                 </div>
-                <span className="font-playfair text-3xl font-semibold">Bella Vita</span>
+                <span className="font-playfair text-3xl font-semibold">Belli Capelli</span>
               </div>
               <p className="text-white/70 mb-6 max-w-md">
                 Il salone di bellezza che unisce tradizione italiana e innovazione tecnologica 
@@ -364,7 +364,7 @@ export default function Home() {
                 </div>
                 <div className="flex items-center space-x-2">
                   <Mail className="w-4 h-4" />
-                  <span>info@bellavitasalon.it</span>
+                  <span>info@bellicapellisalon.it</span>
                 </div>
               </div>
             </div>
@@ -386,7 +386,7 @@ export default function Home() {
           </div>
           
           <div className="border-t border-white/20 pt-8 text-center text-white/60">
-            <p>&copy; 2024 Bella Vita Salon. Tutti i diritti riservati.</p>
+            <p>&copy; 2025 Belli Capelli Salon. Tutti i diritti riservati.</p>
           </div>
         </div>
       </footer>

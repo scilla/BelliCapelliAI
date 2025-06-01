@@ -193,7 +193,7 @@ export default function VoiceCallModal({ isOpen, onClose }: VoiceCallModalProps)
               </div>
 
               <div className="text-sm text-white/60 mb-2">{getCallStatus()}</div>
-              <h3 className="text-xl font-medium mb-1">Bella Vita AI</h3>
+              <h3 className="text-xl font-medium mb-1">Belli Capelli AI</h3>
               <p className="text-white/80 text-sm">Consulente Esperto</p>
             </div>
 
@@ -206,8 +206,8 @@ export default function VoiceCallModal({ isOpen, onClose }: VoiceCallModalProps)
                   className="w-32 h-32 rounded-full border-4 border-white/20 shadow-2xl" 
                 />
                 {/* Call indicator ring */}
-                {(callState === 'incoming' || isSpeaking) && (
-                  <div className="absolute inset-0 rounded-full border-4 border-ios-green opacity-100 ripple"></div>
+                {(isSpeaking) && (
+                  <div className="absolute top-0 left-0 w-32 h-32 rounded-full border-4 border-ios-green animate-ping-center"></div>
                 )}
               </div>
             </div>

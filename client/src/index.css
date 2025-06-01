@@ -190,3 +190,18 @@
   transform: translate(-50%, -50%) scale(0);
   animation: ripple 2s infinite;
 }
+
+.animate-ping-center {
+  animation: ping-from-center 1s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+@keyframes ping-from-center {
+  0% {
+    transform: scale(0);
+    opacity: 1;
+  }
+  75%, 100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
