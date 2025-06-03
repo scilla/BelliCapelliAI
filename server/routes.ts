@@ -6,6 +6,7 @@ import dotenv from "dotenv";
 import { google } from "googleapis";
 import { parseISO } from "date-fns";
 import { formatInTimeZone } from "date-fns-tz";
+import openaiRoutes from "./openai-routes";
 
 // Load environment variables
 dotenv.config();
@@ -14,65 +15,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Enable CORS for API routes
   app.use(cors());
 
-  // ElevenLabs API route to get signed URL for conversation
-  app.get("/api/signed-url", async (req, res) => {
-    try {
-      const agentId = process.env.ELEVENLABS_AGENT_ID;
-      const apiKey = process.env.ELEVENLABS_API_KEY;
+  // Register OpenAI routes
+  app.use("/api", openaiRoutes);
 
-      console.log(`Requesting signed URL with agent ID: ${agentId}`);
-
-      if (!agentId || !apiKey) {
-        return res.status(500).json({ 
-          error: "Missing ElevenLabs configuration. Please set ELEVENLABS_AGENT_ID and ELEVENLABS_API_KEY environment variables." 
-        });
-      }
-
-      const url = `https://api.elevenlabs.io/v1/convai/conversation/get_signed_url?agent_id=${agentId}`;
-      console.log(`Making request to: ${url}`);
-      
-      const response = await fetch(url, {
-        method: "GET",
-        headers: {
-          "xi-api-key": apiKey,
-        },
-      });
-
-      console.log(`ElevenLabs API response status: ${response.status}`);
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error(`ElevenLabs API error response: ${errorText}`);
-        throw new Error(`ElevenLabs API error: ${response.status} ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      console.log(`Received signed URL successfully`);
-      res.json({ signedUrl: data.signed_url });
-    } catch (error: any) {
-      console.error("Error getting signed URL:", error);
-      res.status(500).json({ error: "Failed to get signed URL", details: error?.message || 'Unknown error' });
-    }
-  });
-
-  // API route for getting Agent ID (for public agents)
-  app.get("/api/getAgentId", (req, res) => {
-    const agentId = process.env.ELEVENLABS_AGENT_ID;
-    
-    if (!agentId) {
-      return res.status(500).json({ 
-        error: "Agent ID not configured" 
-      });
-    }
-    
-    res.json({ agentId });
-  });
 
   // use storage to perform CRUD operations on the storage interface
   // e.g. storage.insertUser(user) or storage.getUserByUsername(username)
 
   // Google Calendar API route to get events for a specific day
-  app.get("/api/calendar/events", async (req, res) => {
+  app.get("/api/calendar/events", async (req: any, res: any) => {
     try {
       console.log("Received request for calendar events");
       const day = req.query.day as string;
@@ -154,7 +105,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Google Calendar API route to create a new event
-  app.post("/api/calendar/events", async (req, res) => {
+  app.post("/api/calendar/events", async (req: any, res: any) => {
     try {
       console.log("Received request to create calendar event");
       const { summary, startTime, endTime, attendees } = req.body;
@@ -275,7 +226,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // API route for getting current date and day of week
-  app.get("/api/datetime", (req, res) => {
+  app.get("/api/datetime", (req: any, res: any) => {
     try {
       // Get timezone from query parameter or use Rome as default
       const timezone = req.query.timezone as string || "Europe/Rome";
@@ -302,12 +253,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: "Failed to get date/time information" });
     }
   });
-
-  // // 404 handler for undefined routes
-  // app.use((req, res) => {
-  //   console.log(`Route not found: ${req.method} ${req.path}`);
-  //   res.status(404).json({ error: "Route not found", path: req.path });
-  // });
 
   const httpServer = createServer(app);
 

@@ -3,7 +3,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Phone, PhoneOff, Mic, MicOff, Volume2, Grid3X3, AlertCircle } from "lucide-react";
 import PhoneMock from "./ui/phone-mock";
-import { useElevenLabsConversation } from "@/hooks/use-elevenlabs-conversation";
+import { useOpenAIRealtime } from "@/hooks/use-openai-realtime";
 
 interface VoiceCallModalProps {
   isOpen: boolean;
@@ -18,7 +18,7 @@ export default function VoiceCallModal({ isOpen, onClose }: VoiceCallModalProps)
   const [isEnding, setIsEnding] = useState(false);
   
   const {
-    callState: elevenLabsState,
+    callState: openAIState,
     isConnected,
     isSpeaking,
     callDuration,
@@ -26,12 +26,12 @@ export default function VoiceCallModal({ isOpen, onClose }: VoiceCallModalProps)
     startConversation,
     endConversation,
     resetConversation,
-  } = useElevenLabsConversation();
+  } = useOpenAIRealtime();
 
-  // Map ElevenLabs states to our modal states
+  // Map OpenAI states to our modal states
   const getCallState = (): CallState => {
-    if (elevenLabsState === 'idle' || elevenLabsState === 'connecting') return 'incoming';
-    if (elevenLabsState === 'connected' || elevenLabsState === 'speaking' || elevenLabsState === 'listening') return 'active';
+    if (openAIState === 'idle' || openAIState === 'connecting') return 'incoming';
+    if (openAIState === 'connected' || openAIState === 'speaking' || openAIState === 'listening') return 'active';
     return 'ended';
   };
 
@@ -40,7 +40,7 @@ export default function VoiceCallModal({ isOpen, onClose }: VoiceCallModalProps)
   const getCallStatus = (): string => {
     if (isEnding) return 'Terminando chiamata...';
     
-    switch (elevenLabsState) {
+    switch (openAIState) {
       case 'idle':
         return 'In attesa di chiamata...';
       case 'connecting':
@@ -117,7 +117,7 @@ export default function VoiceCallModal({ isOpen, onClose }: VoiceCallModalProps)
       console.log('Rejecting incoming call...');
       setIsEnding(true);
       // If there's any active conversation, end it
-      if (elevenLabsState !== 'idle') {
+      if (openAIState !== 'idle') {
         await endConversation();
       }
       resetConversation(); // Ensure clean state
@@ -276,10 +276,10 @@ export default function VoiceCallModal({ isOpen, onClose }: VoiceCallModalProps)
               )}
 
               {/* Call ended state */}
-              {(callState === 'ended' || elevenLabsState === 'error') && (
+              {(callState === 'ended' || openAIState === 'error') && (
                 <div className="text-center space-y-4">
                   <p className="text-white/80 mb-4">
-                    {elevenLabsState === 'error' ? 'Errore nella chiamata' : 'Chiamata terminata'}
+                    {openAIState === 'error' ? 'Errore nella chiamata' : 'Chiamata terminata'}
                   </p>
                   {error && (
                     <p className="text-red-400 text-sm mb-4">{error}</p>
