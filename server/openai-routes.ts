@@ -14,7 +14,7 @@ router.post('/realtime-session', async (_req, res) => {
         // System instructions as top-level field
         instructions: 'You are a hair salon receptionist for "Belli Capelli" hair salon. Help clients schedule appointments, answer questions about services, and be friendly and professional. Communicate in Italian primarily.',
         // Add voice parameter (required for audio streaming)
-        voice: 'alloy',
+        voice: 'sage',
         // Tool definitions for function calling
         tools: [
           {
